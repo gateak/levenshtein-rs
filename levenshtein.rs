@@ -1,22 +1,36 @@
-use std::io;
+use std::env;
+use std::io::{self, BufRead};
 use std::cmp;
 
 fn main() {
-    // have to use mut and constructor because its kinda like c++ 
-    let mut string1 = String::new();
-    let mut string2 = String::new();
+    let args: Vec<String> = env::args().collect();
 
-    // standing input from io i
-    println!("Enter the first string:");
-    io::stdin().read_line(&mut string1).expect("Failed to read input");
-    let string1 = string1.trim_end();
+    let (string1, string2) = match args.len() {
+        1 => {
+            let mut input = String::new();
+            io::stdin().read_line(&mut input).expect("Failed to read input");
+            let inputs: Vec<&str> = input.trim_end().split_whitespace().collect();
+            if inputs.len() != 2 {
+                eprintln!("Please provide two strings");
+                std::process::exit(1);
+            }
+            (inputs[0].to_string(), inputs[1].to_string())
+        }
+        2 => {
+            let string1 = args[1].clone();
+            let mut string2 = String::new();
+            io::stdin().read_line(&mut string2).expect("Failed to read input");
+            (string1, string2.trim_end().to_string())
+        }
+        3 => (args[1].clone(), args[2].clone()),
+        _ => {
+            eprintln!("Usage: {} [string1] [string2]", args[0]);
+            std::process::exit(1);
+        }
+    };
 
-    println!("Enter the second string:");
-    io::stdin().read_line(&mut string2).expect("Failed to read input");
-    let string2 = string2.trim_end();
-
-    let distance = levenshtein_distance(string1, string2);
-    println!("The Levenshtein distance between the two strings is: {}", distance);
+    let distance = levenshtein_distance(&string1, &string2);
+    println!("{}", distance);
 }
 
 fn levenshtein_distance(s1: &str, s2: &str) -> usize {
